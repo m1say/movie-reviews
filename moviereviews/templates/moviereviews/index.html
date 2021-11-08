@@ -1,0 +1,27 @@
+
+{% if error_message %}
+  {{error_message}}
+{% else %}
+  <input type="text" id="search" placeholder="Search">
+  <button onclick="search()">Search</button>
+  <ul>
+    {% for review in results %}
+    <li>
+      <a href="{{review.link.url}}" target="_blank">
+        {{ review.display_title }}
+        </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% if has_prev %}
+    <button onclick="goPrev()"> Prev </button>
+  {% endif %}
+    {% if has_next %}
+    <button onclick="goNext()"> Next </button>
+  {% endif %}
+
+{% endif %}
+
+
+{% load static %}
+<script src="{% static 'moviereviews/js/index.js' %}"></script>

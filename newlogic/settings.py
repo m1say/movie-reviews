@@ -106,7 +106,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Manila'
 
 USE_I18N = True
 
@@ -124,3 +124,6 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MOVIE_REVIEW_BASE_URL = 'https://api.nytimes.com/svc/movies/v2/reviews/search.json'
+NY_TIMES_API_KEY = 'zAPlPl3L9LyjcgmJ2kUIpAHeoGuVysSK'
