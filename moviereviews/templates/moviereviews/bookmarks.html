@@ -9,16 +9,15 @@
 
 {% for folder in folders %}
   <h5>{{ folder.name }}</h5>
-   <ul>
+   <ul class="list-group list-group-flush mb-3">
       {% for bookmark in folder.bookmarks.all %}
-      <li>
+      <li class="list-group-item">
         <a href="{{bookmark.link}}" target="_blank">
           {{ bookmark.name }}
           </a>
       </li>
       {% endfor %}
   </ul>
-  <hr>
 {% endfor %}
 
 <a href="{% url 'moviereviews:index' %}" class="btn btn-primary mt-3">Back to home</a>
