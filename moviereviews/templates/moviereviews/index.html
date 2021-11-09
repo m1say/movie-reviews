@@ -1,10 +1,17 @@
+{% extends "base.html" %}
 
+{% block title %}Bookmarks{% endblock %}
+
+{% block content %}
 {% if error_message %}
   {{error_message}}
 {% else %}
-    <a href="{% url 'moviereviews:bookmarks' %}">
-      Go to bookmarks page
-    </a>
+    {% if user.is_authenticated %}
+      <a href="{% url 'moviereviews:bookmarks' %}">
+        Go to bookmarks page
+      </a>
+    {% endif %}
+
   <input type="text" id="search" placeholder="Search">
   <button onclick="search()">Search</button>
   <ul>
@@ -13,6 +20,13 @@
       <a href="{{review.link.url}}" target="_blank">
         {{ review.display_title }}
         </a>
+      {% if user.is_authenticated %}
+        {% if review.bookmark_id %}
+          <button onclick="removeBookmark('{{ review.bookmark_id }}')">Remove</button>
+        {% else %}
+          <button onclick="addBookmark('{{ review.link.url }}')">Add</button>
+        {% endif %}
+      {% endif %}
     </li>
     {% endfor %}
   </ul>
@@ -22,9 +36,206 @@
     {% if has_next %}
     <button onclick="goNext()"> Next </button>
   {% endif %}
-
 {% endif %}
 
 
-{% load static %}
-<script src="{% static 'moviereviews/js/index.js' %}"></script>
+<div class="modal fade" id="bookmarkModal" tabindex="-1" role="dialog" aria-labelledby="bookmarkModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bookmarkModalLabel">Add to bookmark</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text">Name</span>
+          </div>
+          <input id="bookmarkName" type="text" class="form-control" aria-label="Bookmark name" aria-describedby="name">
+        </div>
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <label class="input-group-text" for="folder">Folder</label>
+          </div>
+          <select class="custom-select" id="selectedFolder" name="folder">
+            {% for folder in folders%}
+              <option
+                id="folder{{ forloop.counter }}"
+                value="{{folder.id}}">
+                  {{ folder.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <button onclick="showModal('folderModal')" type="button" class="btn btn-primary">Add new folder</button>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="createNewBookmark()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal" id="folderModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      {% csrf_token %}
+      <div class="modal-header">
+        <h5 class="modal-title">Create new folder</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text">Name</span>
+          </div>
+          <input id="folderName" type="text" class="form-control" aria-label="Bookmark name" aria-describedby="name">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="createNewFolder()">Create</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block javascript %}
+  <script>
+    let bookmarkCandidate = '';
+
+    function showModal(id) {
+      $(`#${id}`).modal({
+        show: true,
+      });
+    }
+
+    function createNewFolder() {
+      const name = $('#folderName').val()
+      const payload = {
+        csrfmiddlewaretoken:'{{ csrf_token }}',
+        action: 'create-folder',
+        name,
+      }
+
+      $.ajax({
+        url: '{% url "moviereviews:index" %}',
+        data: payload,
+        dataType: 'json',
+        type: 'POST',
+        success: function (data) {
+          if (!data.success) {
+            alert(data.error_message);
+          } else {
+            const {id, name} = data.data;
+            $('#selectedFolder').append($('<option>', {
+              value: id,
+              text: name
+            }));
+            $('#folderModal').modal('hide');
+          }
+        }
+      });
+    }
+
+    function createNewBookmark() {
+      const name = $('#bookmarkName').val();
+      const folder_id = $('#selectedFolder').val()
+      const payload = {
+        csrfmiddlewaretoken:'{{ csrf_token }}',
+        action: 'create-bookmark',
+        folder_id,
+        url: bookmarkCandidate,
+        name,
+      }
+
+      $.ajax({
+        url: '{% url "moviereviews:index" %}',
+        data: payload,
+        dataType: 'json',
+        type: 'POST',
+        success: function (data) {
+          if (!data.success) {
+            alert(data.error_message);
+          } else {
+            window.location.reload();
+          }
+        }
+      });
+    }
+
+    function addBookmark(url) {
+      bookmarkCandidate = url;
+      showModal('bookmarkModal');
+    }
+
+    function removeBookmark(bookmark_id) {
+      const payload = {
+        csrfmiddlewaretoken:'{{ csrf_token }}',
+        action: 'delete-bookmark',
+        bookmark_id
+      }
+
+      $.ajax({
+        url: '{% url "moviereviews:index" %}',
+        data: payload,
+        dataType: 'json',
+        type: 'POST',
+        success: function (data) {
+          if (!data.success) {
+            alert(data.error_message);
+          } else {
+            window.location.reload();
+          }
+        }
+      });
+    }
+
+    const params = new URL(document.location).searchParams;
+    const offset = params.has("offset") ? parseInt(params.get("offset")) : 0;
+    const query = params.has("query") ? params.get("query"): '';
+
+    const searchInput = document.getElementById("search");
+    searchInput.value = query;
+
+    function redirect(offset = 0, searchKey = "") {
+      const { origin, pathname } = window.location;
+      let url = origin + pathname;
+
+      const params = new URLSearchParams()
+      if (offset !== 0) {
+        params.append('offset', offset)
+      }
+      if (searchKey !== '') {
+        params.append('query', searchKey)
+      }
+      if (params.toString() !== '') {
+        url += '?' + params.toString()
+      }
+      window.location.href = url;
+    }
+
+    function goPrev() {
+      redirect(offset - 10, query);
+    }
+
+    function goNext() {
+      redirect(offset + 10, query);
+    }
+
+    function search() {
+      const searchKey = searchInput.value;
+      redirect(0, searchKey);
+    }
+  </script>
+{% endblock %}

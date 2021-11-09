@@ -1,1 +1,24 @@
-welcome to bookmarks page
+{% extends "base.html" %}
+
+{% block title %}Bookmarks{% endblock %}
+
+{% block content %}
+
+<a href="{% url 'moviereviews:index' %}">
+  Go to landing page
+</a>
+
+{% for folder in folders %}
+  <h1>{{ folder.name }}</h1>
+   <ul>
+      {% for bookmark in folder.bookmarks.all %}
+      <li>
+        <a href="{{bookmark.link}}" target="_blank">
+          {{ bookmark.name }}
+          </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% endfor %}
+
+{% endblock %}
