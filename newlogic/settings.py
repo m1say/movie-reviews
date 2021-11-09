@@ -127,3 +127,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MOVIE_REVIEW_BASE_URL = 'https://api.nytimes.com/svc/movies/v2/reviews/search.json'
 NY_TIMES_API_KEY = 'zAPlPl3L9LyjcgmJ2kUIpAHeoGuVysSK'
+LOGIN_URL = '/admin/login/'

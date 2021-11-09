@@ -2,6 +2,9 @@
 {% if error_message %}
   {{error_message}}
 {% else %}
+    <a href="{% url 'moviereviews:bookmarks' %}">
+      Go to bookmarks page
+    </a>
   <input type="text" id="search" placeholder="Search">
   <button onclick="search()">Search</button>
   <ul>
