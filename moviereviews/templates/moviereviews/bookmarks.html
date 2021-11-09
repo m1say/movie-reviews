@@ -4,12 +4,11 @@
 
 {% block content %}
 
-<a href="{% url 'moviereviews:index' %}">
-  Go to landing page
-</a>
+
+<h1>Bookmark Folders</h1>
 
 {% for folder in folders %}
-  <h1>{{ folder.name }}</h1>
+  <h5>{{ folder.name }}</h5>
    <ul>
       {% for bookmark in folder.bookmarks.all %}
       <li>
@@ -17,8 +16,11 @@
           {{ bookmark.name }}
           </a>
       </li>
-    {% endfor %}
+      {% endfor %}
   </ul>
+  <hr>
 {% endfor %}
+
+<a href="{% url 'moviereviews:index' %}" class="btn btn-primary mt-3">Back to home</a>
 
 {% endblock %}
